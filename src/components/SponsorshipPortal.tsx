@@ -39,8 +39,8 @@ const TIERS: Tier[] = [
   { id: 'legend', label: 'Legend', amount: 500000, icon: Crown, desc: 'Sultan mode on' },
 ];
 
-// Static QRIS provided by user
-const STATIC_QRIS = "00020101021126570011id.dana.www011893600915399734621102099973462110303umi51440014id.co.qris.www0215id10254336895320303umi5204481453033605802id5910dhan.store600409146105531766304e6af";
+// Updated Static QRIS provided by user
+const STATIC_QRIS = "00020101021126570011ID.DANA.WWW011893600915399734621102099973462110303UMI51440014ID.CO.QRIS.WWW0215ID10254336895320303UMI5204481453033605802ID5910dhan.store600409146105531766304E6AF";
 
 export const SponsorshipPortal = () => {
   const [selectedTier, setSelectedTier] = useState<Tier | null>(null);
