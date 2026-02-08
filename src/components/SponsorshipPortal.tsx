@@ -15,6 +15,7 @@ import {
   Target
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 
 type Tier = {
   id: string;
@@ -38,12 +39,16 @@ const TIERS: Tier[] = [
   { id: 'legend', label: 'Legend', amount: 500000, icon: Crown, desc: 'Sultan mode on' },
 ];
 
+// Static QRIS provided by user
+const STATIC_QRIS = "00020101021126570011id.dana.www011893600915399734621102099973462110303umi51440014id.co.qris.www0215id10254336895320303umi5204481453033605802id5910dhan.store600409146105531766304e6af";
+
 export const SponsorshipPortal = () => {
   const [selectedTier, setSelectedTier] = useState<Tier | null>(null);
   const [customAmount, setCustomAmount] = useState('');
   const [step, setStep] = useState(1); // 1: Input, 2: Loading, 3: Result
   const [qrData, setQrData] = useState<QRData | null>(null);
   const [copied, setCopied] = useState(false);
+  const { toast } = useToast();
 
   const formatRupiah = (val: number) => 
     new Intl.NumberFormat('id-ID', { 
@@ -58,25 +63,52 @@ export const SponsorshipPortal = () => {
     return 0;
   };
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     const amount = getFinalAmount();
     if (amount < 1000) return;
 
     setStep(2);
     
-    // SIMULASI API
-    setTimeout(() => {
-      const txId = `DAGM-FUND-${Math.floor(Math.random() * 999999)}`;
-      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=DAGM-${amount}-${txId}&bgcolor=ffffff&color=000000&margin=10`;
-      
-      setQrData({
-        url: qrUrl,
-        amount: amount,
-        txId: txId,
-        tierName: selectedTier ? selectedTier.label : 'Custom Sponsor'
+    try {
+      const response = await fetch('https://qris.miraipedia.my.id/api/convert', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          amount: amount.toString(),
+          qris: STATIC_QRIS
+        }),
       });
-      setStep(3);
-    }, 2000);
+
+      const result = await response.json();
+
+      if (result.status === 'success' && result.data.qr_base64) {
+        const txId = `DAGM-FUND-${Math.floor(Math.random() * 999999)}`;
+        // Prepend data URI prefix if not present
+        const qrUrl = result.data.qr_base64.startsWith('data:') 
+          ? result.data.qr_base64 
+          : `data:image/png;base64,${result.data.qr_base64}`;
+
+        setQrData({
+          url: qrUrl,
+          amount: amount,
+          txId: txId,
+          tierName: selectedTier ? selectedTier.label : 'Custom Sponsor'
+        });
+        setStep(3);
+      } else {
+        throw new Error(result.message || 'Gagal generate QRIS');
+      }
+    } catch (error: any) {
+      console.error('QRIS Error:', error);
+      setStep(1);
+      toast({
+        variant: "destructive",
+        title: "Gagal Membuat QRIS",
+        description: error.message || "Terjadi kesalahan saat menghubungi server pembayaran. Silakan coba lagi.",
+      });
+    }
   };
 
   const copyToClipboard = () => {
