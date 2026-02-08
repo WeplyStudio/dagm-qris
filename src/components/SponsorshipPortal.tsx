@@ -83,12 +83,11 @@ export const SponsorshipPortal = () => {
 
       const result = await response.json();
 
-      if (result.status === 'success' && result.data.qr_base64) {
+      if (result.status === 'success' && result.data.qris_string) {
         const txId = `DAGM-FUND-${Math.floor(Math.random() * 999999)}`;
-        // Prepend data URI prefix if not present
-        const qrUrl = result.data.qr_base64.startsWith('data:') 
-          ? result.data.qr_base64 
-          : `data:image/png;base64,${result.data.qr_base64}`;
+        
+        // Generate QR Code image from qris_string using qrserver API
+        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(result.data.qris_string)}&bgcolor=ffffff&color=000000&margin=10`;
 
         setQrData({
           url: qrUrl,
@@ -270,6 +269,7 @@ export const SponsorshipPortal = () => {
                     <div className="absolute top-0 left-4 right-4 h-px bg-neutral-300" style={{ backgroundImage: 'linear-gradient(to right, #000 50%, transparent 50%)', backgroundSize: '8px 1px', backgroundRepeat: 'repeat-x' }}></div>
                     
                     <div className="bg-white p-2 rounded-xl border-2 border-black/10 shadow-xl mb-6 mt-4">
+                      {/* Generated from result.data.qris_string as requested */}
                       <img src={qrData.url} alt="QRIS Code" className="w-48 h-48 object-contain mix-blend-multiply" />
                     </div>
                     
