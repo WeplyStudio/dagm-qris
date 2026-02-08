@@ -4,25 +4,25 @@
 
 @layer base {
   :root {
-    --background: 240 6% 4%;
+    --background: 0 0% 0%;
     --foreground: 0 0% 100%;
-    --card: 240 6% 7%;
+    --card: 0 0% 9%;
     --card-foreground: 0 0% 100%;
-    --popover: 240 6% 4%;
+    --popover: 0 0% 0%;
     --popover-foreground: 0 0% 100%;
-    --primary: 269 57% 45%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 240 5% 15%;
+    --primary: 0 0% 100%;
+    --primary-foreground: 0 0% 0%;
+    --secondary: 0 0% 15%;
     --secondary-foreground: 0 0% 100%;
-    --muted: 240 5% 15%;
-    --muted-foreground: 240 5% 65%;
-    --accent: 316 70% 50%;
-    --accent-foreground: 0 0% 100%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 65%;
+    --accent: 0 0% 100%;
+    --accent-foreground: 0 0% 0%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 5% 15%;
-    --input: 240 5% 15%;
-    --ring: 269 57% 45%;
+    --border: 0 0% 15%;
+    --input: 0 0% 15%;
+    --ring: 0 0% 100%;
     --radius: 1rem;
   }
 }
@@ -32,29 +32,29 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground font-body antialiased selection:bg-primary selection:text-white;
+    @apply bg-background text-foreground font-body antialiased selection:bg-white selection:text-black;
   }
 }
 
 @layer utilities {
   .bg-grid-pattern {
-    background-image: linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px), 
-                      linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    background-image: linear-gradient(#333 1px, transparent 1px), 
+                      linear-gradient(90deg, #333 1px, transparent 1px);
     background-size: 40px 40px;
     mask-image: radial-gradient(circle at center, black, transparent 80%);
     -webkit-mask-image: radial-gradient(circle at center, black, transparent 80%);
   }
 
   .glass-card {
-    background: rgba(23, 23, 23, 0.4);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(23, 23, 23, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
   }
   
   .glass-card:hover {
-    background: rgba(23, 23, 23, 0.6);
-    border-color: rgba(255, 255, 255, 0.15);
+    background: rgba(23, 23, 23, 0.9);
+    border-color: rgba(255, 255, 255, 0.2);
   }
 
   .animate-fade-up {
