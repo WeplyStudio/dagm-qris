@@ -13,7 +13,6 @@ import {
   Check, 
   Copy, 
   Target,
-  Download,
   Info
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -87,7 +86,6 @@ export const SponsorshipPortal = () => {
 
       if (result.status === 'success' && result.data.qris_string) {
         const txId = `DAGM-FUND-${Math.floor(Math.random() * 999999)}`;
-        
         const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(result.data.qris_string)}&bgcolor=ffffff&color=000000&margin=10`;
 
         setQrData({
@@ -102,7 +100,6 @@ export const SponsorshipPortal = () => {
         throw new Error(result.message || 'Gagal generate QRIS');
       }
     } catch (error: any) {
-      console.error('QRIS Error:', error);
       setStep(1);
       toast({
         variant: "destructive",
@@ -120,108 +117,98 @@ export const SponsorshipPortal = () => {
     }
   };
 
-  // RENDER STEP 3 (HALAMAN BARU)
+  // RENDER STEP 3: HALAMAN CHECKOUT BARU
   if (step === 3 && qrData) {
     return (
-      <div className="max-w-4xl mx-auto animate-fade-up">
-        <div className="flex flex-col md:flex-row gap-8 items-start">
-          {/* Back Action */}
-          <div className="w-full md:w-auto">
+      <div className="max-w-2xl mx-auto animate-fade-up pb-20">
+        <div className="space-y-8">
+          {/* Header Action & Status */}
+          <div className="flex items-center justify-between gap-4">
             <button 
               onClick={() => { setStep(1); setQrData(null); }}
-              className="group flex items-center gap-3 px-6 py-3 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all text-sm font-bold"
+              className="group flex items-center gap-3 px-5 py-2.5 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all text-sm font-bold"
             >
               <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
               Kembali ke Pemilihan
             </button>
+            <div className="text-right">
+              <p className="text-[10px] uppercase tracking-widest font-black text-neutral-500 mb-1">Status</p>
+              <div className="px-3 py-1 bg-white text-black text-[10px] font-black rounded-full">WAITING PAYMENT</div>
+            </div>
           </div>
 
-          {/* Payment Detail Page */}
-          <div className="flex-1 w-full space-y-8">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-4xl font-bold tracking-tighter">Checkout.</h1>
-                <p className="text-neutral-500 font-medium">Selesaikan pembayaran untuk mendukung revolusi.</p>
-              </div>
-              <div className="hidden sm:block text-right">
-                <p className="text-[10px] uppercase tracking-widest font-black text-neutral-500 mb-1">Status</p>
-                <div className="px-3 py-1 bg-white text-black text-[10px] font-black rounded-full">WAITING PAYMENT</div>
+          {/* Title Section */}
+          <div>
+            <h1 className="text-5xl font-bold tracking-tighter">Checkout.</h1>
+            <p className="text-neutral-500 font-medium">Selesaikan pembayaran untuk mendukung revolusi.</p>
+          </div>
+
+          {/* Teks Pemilihan / Info Nominal (Berada DI ATAS QR Card) */}
+          <div className="glass-card rounded-3xl p-8 space-y-4">
+            <div>
+              <p className="text-[10px] uppercase tracking-widest font-black text-neutral-500 mb-2">Total Dukungan</p>
+              <h2 className="text-5xl font-black text-white">{formatRupiah(qrData.amount)}</h2>
+              <span className="inline-block mt-3 px-3 py-1 bg-white/10 border border-white/10 rounded-full text-xs font-bold text-white uppercase tracking-wider">
+                Tier: {qrData.tierName}
+              </span>
+            </div>
+            <div className="h-px bg-white/10 w-full" />
+            <div className="flex justify-between items-center text-sm">
+              <span className="text-neutral-500 font-medium">Transaction ID</span>
+              <button 
+                onClick={copyToClipboard}
+                className="flex items-center gap-2 text-white font-mono font-bold hover:text-neutral-400 transition-colors"
+              >
+                {qrData.txId}
+                {copied ? <Check size={14} className="text-green-500"/> : <Copy size={14} />}
+              </button>
+            </div>
+            <div className="flex justify-between items-center text-sm">
+              <span className="text-neutral-500 font-medium">Admin Fee</span>
+              <span className="text-green-500 font-bold italic">Rp 0 (Free)</span>
+            </div>
+          </div>
+
+          {/* QR Card (Sekarang berada DI BAWAH teks pemilihan) */}
+          <div className="glass-card rounded-3xl p-8 flex flex-col items-center space-y-8">
+            <div className="bg-white p-4 rounded-3xl shadow-2xl shadow-white/5">
+              <img 
+                src={qrData.url} 
+                alt="QRIS Payment" 
+                className="w-64 h-64 object-contain"
+              />
+            </div>
+            <div className="text-center space-y-3">
+              <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Metode Pembayaran</p>
+              <div className="flex flex-col items-center gap-2">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/a/a2/Logo_QRIS.svg" className="h-4 invert opacity-70" alt="QRIS" />
+                <span className="text-[10px] font-black opacity-40 uppercase tracking-widest leading-relaxed">GOPAY / OVO / DANA / MOBILE BANKING</span>
               </div>
             </div>
+          </div>
 
-            <div className="grid md:grid-cols-2 gap-8">
-              {/* QR Section */}
-              <div className="glass-card rounded-3xl p-8 flex flex-col items-center justify-center space-y-6">
-                <div className="bg-white p-4 rounded-3xl shadow-2xl shadow-white/5">
-                  <img 
-                    src={qrData.url} 
-                    alt="QRIS Payment" 
-                    className="w-64 h-64 object-contain"
-                  />
-                </div>
-                <div className="text-center space-y-2">
-                  <p className="text-xs font-bold text-neutral-500 uppercase tracking-widest">Metode Pembayaran</p>
-                  <div className="flex items-center justify-center gap-3">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/a/a2/Logo_QRIS.svg" className="h-4 invert" alt="QRIS" />
-                    <span className="text-sm font-black opacity-50">GOPAY / OVO / DANA / MOBILE BANKING</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Info Section */}
-              <div className="space-y-6">
-                <div className="glass-card rounded-3xl p-8 space-y-6">
-                  <div>
-                    <p className="text-[10px] uppercase tracking-widest font-black text-neutral-500 mb-2">Total Dukungan</p>
-                    <h2 className="text-5xl font-black text-white">{formatRupiah(qrData.amount)}</h2>
-                    <span className="inline-block mt-2 px-3 py-1 bg-white/10 border border-white/10 rounded-full text-xs font-bold text-white">
-                      Tier: {qrData.tierName}
-                    </span>
-                  </div>
-
-                  <div className="h-px bg-white/10 w-full" />
-
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-neutral-500 font-medium">Transaction ID</span>
-                      <button 
-                        onClick={copyToClipboard}
-                        className="flex items-center gap-2 text-white font-mono font-bold hover:text-neutral-400 transition-colors"
-                      >
-                        {qrData.txId}
-                        {copied ? <Check size={14} className="text-green-500"/> : <Copy size={14} />}
-                      </button>
-                    </div>
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-neutral-500 font-medium">Admin Fee</span>
-                      <span className="text-green-500 font-bold">Rp 0 (Free)</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-white/5 border border-white/10 rounded-2xl p-6 flex gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center shrink-0">
-                    <Info size={20} className="text-neutral-400" />
-                  </div>
-                  <p className="text-xs text-neutral-400 leading-relaxed">
-                    Pastikan nominal yang tertera pada aplikasi pembayaran Anda sesuai dengan total di atas. Dana akan langsung masuk ke rekening aspirasi DAGM.
-                  </p>
-                </div>
-              </div>
+          {/* Note Section */}
+          <div className="bg-white/5 border border-white/10 rounded-2xl p-6 flex gap-4">
+            <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center shrink-0">
+              <Info size={20} className="text-neutral-400" />
             </div>
+            <p className="text-xs text-neutral-400 leading-relaxed">
+              Pastikan nominal yang tertera pada aplikasi pembayaran Anda sesuai dengan total di atas. Dana akan langsung masuk ke rekening aspirasi DAGM secara transparan.
+            </p>
+          </div>
 
-            <div className="text-center pt-8 border-t border-white/5">
-              <p className="text-[10px] uppercase font-black tracking-[0.2em] text-neutral-600">
-                Powered by DAGM Finance &copy; {new Date().getFullYear()}
-              </p>
-            </div>
+          {/* Footer Footer */}
+          <div className="text-center pt-8 border-t border-white/5">
+            <p className="text-[10px] uppercase font-black tracking-[0.2em] text-neutral-600">
+              Powered by DAGM Finance &copy; {new Date().getFullYear()}
+            </p>
           </div>
         </div>
       </div>
     );
   }
 
-  // RENDER STEP 1 & 2
+  // RENDER STEP 1 & 2: PEMILIHAN
   return (
     <div className="relative z-10 grid lg:grid-cols-12 gap-12 items-start">
       {/* LEFT COLUMN */}
@@ -243,18 +230,18 @@ export const SponsorshipPortal = () => {
         </p>
 
         <div className="grid grid-cols-2 gap-4 pt-4">
-          <div className="p-6 rounded-2xl border border-white/10 bg-neutral-900/30">
+          <div className="p-6 rounded-2xl border border-white/10 bg-neutral-900/30 text-center">
             <div className="text-3xl font-black mb-1 text-white">100%</div>
-            <div className="text-xs text-neutral-500 uppercase tracking-widest">Dana Tersalurkan</div>
+            <div className="text-[10px] text-neutral-500 uppercase tracking-widest font-bold">Dana Tersalurkan</div>
           </div>
-          <div className="p-6 rounded-2xl border border-white/10 bg-neutral-900/30">
+          <div className="p-6 rounded-2xl border border-white/10 bg-neutral-900/30 text-center">
             <div className="text-3xl font-black mb-1 text-white">Zero</div>
-            <div className="text-xs text-neutral-500 uppercase tracking-widest">Platform Fee</div>
+            <div className="text-[10px] text-neutral-500 uppercase tracking-widest font-bold">Platform Fee</div>
           </div>
         </div>
       </div>
 
-      {/* RIGHT COLUMN (INPUT SECTION) */}
+      {/* RIGHT COLUMN: INPUT SECTION */}
       <div className="lg:col-span-7">
         <div className="glass-card rounded-3xl p-1 md:p-2 shadow-2xl shadow-black/50 overflow-hidden min-h-[600px] flex flex-col relative transition-all duration-500 hover:shadow-white/5">
           
