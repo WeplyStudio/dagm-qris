@@ -12,7 +12,9 @@ import {
   ArrowLeft, 
   Check, 
   Copy, 
-  Target
+  Target,
+  Download,
+  Info
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
@@ -30,6 +32,7 @@ type QRData = {
   amount: number;
   txId: string;
   tierName: string;
+  qrisString: string;
 };
 
 const TIERS: Tier[] = [
@@ -39,7 +42,6 @@ const TIERS: Tier[] = [
   { id: 'legend', label: 'Legend', amount: 500000, icon: Crown, desc: 'Sultan mode on' },
 ];
 
-// Updated Static QRIS provided by user
 const STATIC_QRIS = "00020101021126570011ID.DANA.WWW011893600915399734621102099973462110303UMI51440014ID.CO.QRIS.WWW0215ID10254336895320303UMI5204481453033605802ID5910dhan.store600409146105531766304E6AF";
 
 export const SponsorshipPortal = () => {
@@ -86,14 +88,14 @@ export const SponsorshipPortal = () => {
       if (result.status === 'success' && result.data.qris_string) {
         const txId = `DAGM-FUND-${Math.floor(Math.random() * 999999)}`;
         
-        // Generate QR Code image from qris_string using qrserver API
         const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(result.data.qris_string)}&bgcolor=ffffff&color=000000&margin=10`;
 
         setQrData({
           url: qrUrl,
           amount: amount,
           txId: txId,
-          tierName: selectedTier ? selectedTier.label : 'Custom Sponsor'
+          tierName: selectedTier ? selectedTier.label : 'Custom Sponsor',
+          qrisString: result.data.qris_string
         });
         setStep(3);
       } else {
@@ -105,7 +107,7 @@ export const SponsorshipPortal = () => {
       toast({
         variant: "destructive",
         title: "Gagal Membuat QRIS",
-        description: error.message || "Terjadi kesalahan saat menghubungi server pembayaran. Silakan coba lagi.",
+        description: error.message || "Terjadi kesalahan saat menghubungi server pembayaran.",
       });
     }
   };
@@ -118,6 +120,108 @@ export const SponsorshipPortal = () => {
     }
   };
 
+  // RENDER STEP 3 (HALAMAN BARU)
+  if (step === 3 && qrData) {
+    return (
+      <div className="max-w-4xl mx-auto animate-fade-up">
+        <div className="flex flex-col md:flex-row gap-8 items-start">
+          {/* Back Action */}
+          <div className="w-full md:w-auto">
+            <button 
+              onClick={() => { setStep(1); setQrData(null); }}
+              className="group flex items-center gap-3 px-6 py-3 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all text-sm font-bold"
+            >
+              <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
+              Kembali ke Pemilihan
+            </button>
+          </div>
+
+          {/* Payment Detail Page */}
+          <div className="flex-1 w-full space-y-8">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-4xl font-bold tracking-tighter">Checkout.</h1>
+                <p className="text-neutral-500 font-medium">Selesaikan pembayaran untuk mendukung revolusi.</p>
+              </div>
+              <div className="hidden sm:block text-right">
+                <p className="text-[10px] uppercase tracking-widest font-black text-neutral-500 mb-1">Status</p>
+                <div className="px-3 py-1 bg-white text-black text-[10px] font-black rounded-full">WAITING PAYMENT</div>
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-8">
+              {/* QR Section */}
+              <div className="glass-card rounded-3xl p-8 flex flex-col items-center justify-center space-y-6">
+                <div className="bg-white p-4 rounded-3xl shadow-2xl shadow-white/5">
+                  <img 
+                    src={qrData.url} 
+                    alt="QRIS Payment" 
+                    className="w-64 h-64 object-contain"
+                  />
+                </div>
+                <div className="text-center space-y-2">
+                  <p className="text-xs font-bold text-neutral-500 uppercase tracking-widest">Metode Pembayaran</p>
+                  <div className="flex items-center justify-center gap-3">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/a/a2/Logo_QRIS.svg" className="h-4 invert" alt="QRIS" />
+                    <span className="text-sm font-black opacity-50">GOPAY / OVO / DANA / MOBILE BANKING</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Info Section */}
+              <div className="space-y-6">
+                <div className="glass-card rounded-3xl p-8 space-y-6">
+                  <div>
+                    <p className="text-[10px] uppercase tracking-widest font-black text-neutral-500 mb-2">Total Dukungan</p>
+                    <h2 className="text-5xl font-black text-white">{formatRupiah(qrData.amount)}</h2>
+                    <span className="inline-block mt-2 px-3 py-1 bg-white/10 border border-white/10 rounded-full text-xs font-bold text-white">
+                      Tier: {qrData.tierName}
+                    </span>
+                  </div>
+
+                  <div className="h-px bg-white/10 w-full" />
+
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-neutral-500 font-medium">Transaction ID</span>
+                      <button 
+                        onClick={copyToClipboard}
+                        className="flex items-center gap-2 text-white font-mono font-bold hover:text-neutral-400 transition-colors"
+                      >
+                        {qrData.txId}
+                        {copied ? <Check size={14} className="text-green-500"/> : <Copy size={14} />}
+                      </button>
+                    </div>
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-neutral-500 font-medium">Admin Fee</span>
+                      <span className="text-green-500 font-bold">Rp 0 (Free)</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white/5 border border-white/10 rounded-2xl p-6 flex gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center shrink-0">
+                    <Info size={20} className="text-neutral-400" />
+                  </div>
+                  <p className="text-xs text-neutral-400 leading-relaxed">
+                    Pastikan nominal yang tertera pada aplikasi pembayaran Anda sesuai dengan total di atas. Dana akan langsung masuk ke rekening aspirasi DAGM.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="text-center pt-8 border-t border-white/5">
+              <p className="text-[10px] uppercase font-black tracking-[0.2em] text-neutral-600">
+                Powered by DAGM Finance &copy; {new Date().getFullYear()}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // RENDER STEP 1 & 2
   return (
     <div className="relative z-10 grid lg:grid-cols-12 gap-12 items-start">
       {/* LEFT COLUMN */}
@@ -150,7 +254,7 @@ export const SponsorshipPortal = () => {
         </div>
       </div>
 
-      {/* RIGHT COLUMN */}
+      {/* RIGHT COLUMN (INPUT SECTION) */}
       <div className="lg:col-span-7">
         <div className="glass-card rounded-3xl p-1 md:p-2 shadow-2xl shadow-black/50 overflow-hidden min-h-[600px] flex flex-col relative transition-all duration-500 hover:shadow-white/5">
           
@@ -238,63 +342,6 @@ export const SponsorshipPortal = () => {
                 </div>
                 <h3 className="text-3xl font-bold mb-2 text-white">Generating QRIS</h3>
                 <p className="text-neutral-400">Menghubungkan ke secure payment gateway...</p>
-              </div>
-            )}
-
-            {/* STEP 3: SUCCESS / QR DISPLAY */}
-            {step === 3 && qrData && (
-              <div className="flex-1 flex flex-col animate-fade-up">
-                <div className="flex items-center justify-between mb-8">
-                  <button 
-                    onClick={() => { setStep(1); setQrData(null); }}
-                    className="flex items-center gap-2 text-sm font-bold hover:text-neutral-400 transition-colors text-white"
-                  >
-                    <ArrowLeft size={16} /> Kembali
-                  </button>
-                  <div className="px-3 py-1 bg-white/10 rounded-full text-xs font-bold border border-white/10 text-white">
-                    PAYMENT REQUEST
-                  </div>
-                </div>
-
-                <div className="bg-white text-black rounded-3xl p-2 relative overflow-hidden flex-1 flex flex-col">
-                  <div className="bg-neutral-100 rounded-2xl p-6 text-center border border-neutral-200">
-                    <p className="text-neutral-500 text-xs font-bold uppercase tracking-widest mb-1">Total Sponsorship</p>
-                    <h2 className="text-4xl font-black tracking-tight">{formatRupiah(qrData.amount)}</h2>
-                    <div className="mt-2 inline-flex items-center gap-1 text-sm font-semibold bg-white px-3 py-1 rounded-full border border-neutral-200 shadow-sm">
-                      {qrData.tierName}
-                    </div>
-                  </div>
-
-                  <div className="flex-1 flex flex-col items-center justify-center p-6 relative">
-                    <div className="absolute top-0 left-4 right-4 h-px bg-neutral-300" style={{ backgroundImage: 'linear-gradient(to right, #000 50%, transparent 50%)', backgroundSize: '8px 1px', backgroundRepeat: 'repeat-x' }}></div>
-                    
-                    <div className="bg-white p-2 rounded-xl border-2 border-black/10 shadow-xl mb-6 mt-4">
-                      {/* Generated from result.data.qris_string as requested */}
-                      <img src={qrData.url} alt="QRIS Code" className="w-48 h-48 object-contain mix-blend-multiply" />
-                    </div>
-                    
-                    <p className="text-center text-sm font-medium text-neutral-500 max-w-[200px] mb-6">
-                      Scan menggunakan GoPay, OVO, Dana, atau Mobile Banking.
-                    </p>
-
-                    <div 
-                      className="w-full bg-neutral-100 rounded-xl p-4 flex items-center justify-between group cursor-pointer hover:bg-neutral-200 transition-colors" 
-                      onClick={copyToClipboard}
-                    >
-                      <div className="flex flex-col text-left">
-                        <span className="text-[10px] uppercase font-bold text-neutral-400">Transaction ID</span>
-                        <span className="font-mono font-bold text-sm text-black">{qrData.txId}</span>
-                      </div>
-                      <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center border border-neutral-200">
-                        {copied ? <Check size={14} className="text-green-600"/> : <Copy size={14} className="text-black" />}
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="bg-black text-white p-4 text-center rounded-b-2xl rounded-t-lg mx-2 mb-2">
-                    <p className="text-[10px] uppercase font-bold tracking-widest text-neutral-400">Powered by DAGM Finance</p>
-                  </div>
-                </div>
               </div>
             )}
           </div>
